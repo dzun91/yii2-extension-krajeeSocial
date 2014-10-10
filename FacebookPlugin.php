@@ -104,13 +104,21 @@ class FacebookPlugin extends Widget
         $view = $this->getView();
         $js = <<< SCRIPT
 (function(d, s, id) {
-    var js, fjs = d.getElementsByTagName(s)[0];
-    if (d.getElementById(id))
-        return;
-    js = d.createElement(s);
-    js.id = id;
-    js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId={$this->appId}";
-    fjs.parentNode.insertBefore(js, fjs);
+    var fbdetect = new Image();    
+    fbdetect.src = "http://www.facebook.com/favicon.ico?"+Math.random();
+    fbdetect.onload = function () {
+        console.log('connected');
+        var js, fjs = d.getElementsByTagName(s)[0];
+        if (d.getElementById(id))
+            return;
+        js = d.createElement(s);
+        js.id = id;
+        js.src = "//connect.facebook.net/en_US/all.js#xfbml=1&appId={$this->appId}";
+        fjs.parentNode.insertBefore(js, fjs);
+    }
+    fbdetect.onerror = function () {
+        console.log('blocked');
+    }
 }(document, 'script', 'facebook-jssdk'));                
 SCRIPT;
         $view->registerJs($js);

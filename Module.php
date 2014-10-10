@@ -116,6 +116,7 @@ class Module extends \yii\base\Module
         $secret             = null;
         $fileUpload         = false;
         $allowSignedRequest = false;
+        $newSDK             = null;
 
         extract($this->facebook);
 
@@ -125,15 +126,29 @@ class Module extends \yii\base\Module
         if ($secret == null) {
             throw new InvalidConfigException("The Facebook 'secret' has not been set.");
         }
+        $useNewSDK = ($newSDK == null) ? false : true;
         if (!isset($this->_facebook)) {
-            require_once('sdk/facebook/php-sdk/src/facebook.php');
+            if($useNewSDK) {
+                $path = 'sdk/facebook-v4';
+                
+                require_once "$path/autoload.php";
+                \Yii::setAlias('Facebook', __DIR__ . '/Facebook');
+                
+                $session = new \yii\web\Session;
+                $session->open();
+                \Facebook\FacebookSession::setDefaultApplication($appId, $secret);
+                
+                $this->_facebook = compact('appId', 'secret', 'fileUpload', 'allowSignedRequest');
+            } else {
+                require_once('sdk/facebook/php-sdk/src/facebook.php');
             
-            $config          = compact('appId', 'secret', 'fileUpload', 'allowSignedRequest');
-            $this->_facebook = new \Facebook($config);
+                $config          = compact('appId', 'secret', 'fileUpload', 'allowSignedRequest');
+                $this->_facebook = new \Facebook($config);
+            }
         }
         return $this->_facebook;
     }
-
+    
     /**
      * Returns the Facebook User ID
      *
